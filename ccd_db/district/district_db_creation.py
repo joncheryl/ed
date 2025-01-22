@@ -18,7 +18,7 @@ Four tables:
 import sqlite3
 
 # Creates a new database file if it doesn't exist
-conn = sqlite3.connect('district.db')
+conn = sqlite3.connect('data/district.db')
 cursor = conn.cursor()
 
 # Create the tables

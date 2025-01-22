@@ -169,9 +169,14 @@ col_dtypes = {
     **{col: 'REAL' for col in float_cols.index}
 }
 
+# I'm dropping the non_numeric leaid rows just for the sake of making the db
+# faster
+fiscal['LEAID'] = pd.to_numeric(fiscal['LEAID'], errors='coerce')
+fiscal = fiscal.dropna(axis=0, subset='LEAID').astype({'LEAID': int})
+
 #%%
 # Creates a new database file if it doesn't exist
-conn = sqlite3.connect('district.db')
+conn = sqlite3.connect('data/district.db')
 cursor = conn.cursor()
 
 (fiscal

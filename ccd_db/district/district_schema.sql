@@ -137,7 +137,7 @@ CREATE TABLE membership (
 -- Fiscal information
 CREATE TABLE fiscal (
     id INTEGER PRIMARY KEY,
-    leaid TEXT,
+    leaid INTEGER,
     censusid TEXT,
     fl_v33 TEXT,
     fl_c14 TEXT,
@@ -523,4 +523,9 @@ CREATE TABLE fiscal (
     v24 REAL,
     v26 REAL,
     v28 REAL
-)
+);
+
+-- Indexes to speed up common queries
+CREATE INDEX idx_membership_end_year_leaid ON membership (end_year, leaid);
+CREATE INDEX idx_fiscal_end_year_leaid ON fiscal (end_year, leaid);
+CREATE INDEX idx_membership_total_indicator ON membership (total_indicator);

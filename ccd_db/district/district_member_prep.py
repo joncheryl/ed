@@ -79,7 +79,7 @@ pre_membership = {year: pd.read_csv(file,
                   year, (file, format, delim, kind) in files.items()}
 
 # add files/years from 1987 to 2014
-membership_2014 = pd.read_csv('data/nonfiscal/memberhsip/' + \
+membership_2014 = pd.read_csv('data/nonfiscal/membership/' + \
                               'membership_through_2014.csv',
                               dtype={'ST_LEAID': 'string',
                                      'UG': 'Int64',
@@ -194,14 +194,14 @@ for year in range(1987, 2017):
 
     # Create flags for the total district enrollment (includes adult education)
     mask_aggregation = (
-        (pre_membership[year].iloc[:, 0] == "Aggregation") &
-        (pre_membership[year].iloc[:, 1] == "Aggregation") &
-        (pre_membership[year].iloc[:, 2] == "Aggregation")
+        (pre_membership[year].iloc[:, 10] == "Aggregation") &
+        (pre_membership[year].iloc[:, 11] == "Aggregation") &
+        (pre_membership[year].iloc[:, 12] == "Aggregation")
     )
     mask_aggregation_less_ae = (
-        (pre_membership[year].iloc[:, 0] == "Aggregation Less AE") &
-        (pre_membership[year].iloc[:, 1] == "Aggregation Less AE") &
-        (pre_membership[year].iloc[:, 2] == "Aggregation Less AE")
+        (pre_membership[year].iloc[:, 10] == "Aggregation Less AE") &
+        (pre_membership[year].iloc[:, 11] == "Aggregation Less AE") &
+        (pre_membership[year].iloc[:, 12] == "Aggregation Less AE")
     )
     result = pd.Series("Running out of steam...",
                        index=pre_membership[year].index)
@@ -343,7 +343,7 @@ col_dtypes = {
     'dms_flag': 'TEXT'}
 
 # Creates a new database file if it doesn't exist
-conn = sqlite3.connect('district.db')
+conn = sqlite3.connect('data/district.db')
 cursor = conn.cursor()
 
 (membership[membership_columns]

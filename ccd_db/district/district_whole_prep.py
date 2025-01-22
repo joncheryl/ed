@@ -86,6 +86,14 @@ pre_whole_fwf = {year: pd.read_fwf(file,
 
 pre_whole.update(pre_whole_fwf)
 
+# The column names for end_year=1987 are different
+# C05_1987 = 'MEMBER'
+pre_whole[1987] = (
+    pre_whole[1987]
+    .rename(columns={'C05': 'MEMBER'})
+    .drop(columns=['C01', 'C02', 'C03', 'C04'])
+)
+
 # %%
 whole = (pd.
          concat({x: y for x, y in pre_whole.items()},
@@ -245,8 +253,9 @@ whole = whole.rename({'OTHGUI': 'GUI',
 
 # Then something like the following:
 staff_cols_we_want = [x for x in staff_cols if x in whole.columns]
-whole[staff_cols_we_want].to_csv('data/staff_through_2014.csv',
-                                 index=False)
+whole[staff_cols_we_want].to_csv(
+    'data/nonfiscal/staff/staff_through_2014.csv',
+    index=False)
 
 ################################################
 # For merging DIRECTORY
@@ -298,8 +307,9 @@ whole = whole.rename({'MSTREE': 'MSTREET1',
 
 # Then something like the following:
 directory_cols_we_want = [x for x in directory_cols if x in whole.columns]
-whole[directory_cols_we_want].to_csv('data/directory_through_2014.csv',
-                                     index=False)
+whole[directory_cols_we_want].to_csv(
+    'data/nonfiscal/directory/directory_through_2014.csv',
+    index=False)
 
 ################################################
 # For merging MEMBERSHIP
@@ -326,8 +336,9 @@ whole = whole.rename({'WHITE': 'WH',
 
 # Then something like the following:
 membership_cols_we_want = [x for x in membership_cols if x in whole.columns]
-whole[membership_cols_we_want].to_csv('data/membership_through_2014.csv',
-                                      index=False)
+whole[membership_cols_we_want].to_csv(
+    'data/nonfiscal/membership/membership_through_2014.csv',
+    index=False)
 
 #%%
 ################################################
