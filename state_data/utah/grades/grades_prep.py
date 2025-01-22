@@ -18,9 +18,9 @@ PDF summary for end_year=2013 (labeled 2012 for 2012-2013 school year):
 import pandas as pd
 
 FILE_PREFIX = "AccountabilitySchoolGrades"
-pre_grades = {year: pd.read_excel(FILE_PREFIX + str(year) + ".xlsx",
+pre_grades = {year: pd.read_excel(FILE_PREFIX + str(year-1) + ".xlsx",
                                   header=1)
-              for year in range(2012, 2017)}
+              for year in range(2013, 2018)}
 
 # make attribute names consistent
 renames = {
@@ -31,13 +31,13 @@ renames = {
         'Students Meeting All Four CCR Benchmarks ACT'
     }
 
-for year in range(2012, 2017):
+for year in range(2013, 2018):
     pre_grades[year] = pre_grades[year].rename(columns = renames)
 
-# drop an erroneous row in 2012
-pre_grades[2012] = (
-    pre_grades[2012]
-    .dropna(subset=pre_grades[2012].columns.difference(['LEA']),
+# drop an erroneous row in 2013
+pre_grades[2013] = (
+    pre_grades[2013]
+    .dropna(subset=pre_grades[2013].columns.difference(['LEA']),
             how='all')
 )
 
