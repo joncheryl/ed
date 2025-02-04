@@ -50,6 +50,7 @@ pre_whole.update(pre_whole_fwf)
 pre_whole[1987] = pre_whole[1987].rename(columns={'OTHPRG': 'OTHDIP'})
 
 # end_year = 1996, 1999 are special with respect to naming conventions.
+# Using a crosswalk from the documentation for the 1999 file.
 # Manual edits to crosswalk.csv:
 # "WHIT" -> "WHT"
 # "BLAC" -> "BLK"
