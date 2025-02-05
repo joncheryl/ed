@@ -162,6 +162,11 @@ pre_layout = {year: pd.read_csv(file, comment='#',
                                 skiprows=skip) for
               year, (file, skip, correct_names) in files.items()}
 
+# For end_year = 1989, the ZIP column should be split into ZIP (5 long) 
+# and ZIP4 (5 long including dash (or something))
+pre_layout[1989].loc[pre_layout[1989]['variable'] == 'ZIP', 'width'] = 5
+pre_layout[1989].loc[pre_layout[1989]['variable'] == 'ZIP', 'end'] = 130
+
 # For end_year = 1991, the STATE width and end are incorrect (6 too long).
 pre_layout[1991].loc[pre_layout[1991]['variable'] == 'STATE', 'width'] = 29
 pre_layout[1991]['end'] = pre_layout[1991]['width'].cumsum()
