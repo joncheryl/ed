@@ -52,11 +52,7 @@ int_columns = ['MZIP', 'MZIP4', 'LZIP', 'LZIP4', 'ZIP', 'ZIP4',
 directory = directory.astype({column: 'Int64' for column in int_columns})
 
 # Make columns names lowercase.
-directory = (
-    directory
-    .rename(columns=dict(zip(directory.columns,
-                             directory.columns.str.lower())))
-)
+directory = directory.rename(columns=str.lower)
 
 # %%
 ###############################################################################
