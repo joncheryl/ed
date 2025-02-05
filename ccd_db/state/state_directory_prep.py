@@ -4,7 +4,7 @@ Feb 1, 2025
 
 Script to organize 2015-2024 directory data from the CCD nonfiscal datasets
 and then to concat that with the prepped columns from whole dataframe (2014
-and earlier)
+and earlier). And then write the final dataframe to a SQLITE database.
 '''
 #%%
 import sqlite3
@@ -46,7 +46,7 @@ directory = directory.drop(columns=['STABR', 'SCHOOL_YEAR',
 # STATE_AGENCY_NO doesn't seem to have any information so drop it.
 directory = directory.drop(columns=['STATE_AGENCY_NO'])
 
-# Correct column types.
+# Properly assign type for columns that should be int.
 int_columns = ['MZIP', 'MZIP4', 'LZIP', 'LZIP4', 'ZIP', 'ZIP4',
                'OPERATIONAL_SCHOOLS', 'OPERATIONAL_LEAS']
 directory = directory.astype({column: 'Int64' for column in int_columns})
@@ -63,11 +63,7 @@ directory = (
 # Write the directory table to the database
 ###############################################################################
 
-# Need to check to make sure OUT_OF_STATE_FLAG, etc. correctly imported as
-# a boolean. SQLITE3 doesn't support booleans. Uses ints instead. Might need
-# convert boolean categories to integers and go to 0/1 instead of False/True.
-
-# Column names in lower case and 
+# Make a mapping from python/pandas dtypes to SQLITE dtypes
 type_map = {'object': 'TEXT',
             'int': 'INTEGER',
             'Int64': 'INTEGER'}
@@ -78,13 +74,11 @@ col_dtypes = dict(zip(directory.dtypes.index,
 conn = sqlite3.connect('data/state.db')
 cursor = conn.cursor()
 
-(directory
- .to_sql('directory',
-         con=conn,
-         if_exists='append',
-         index=False,
-         dtype=col_dtypes)
-)
+directory.to_sql('directory',
+                 con=conn,
+                 if_exists='append',
+                 index=False,
+                 dtype=col_dtypes)
 
 conn.close()
 
