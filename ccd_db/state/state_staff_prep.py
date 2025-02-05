@@ -2,9 +2,9 @@
 John Sherrill
 Feb 1, 2025
 
-Script to organize 2015-2023 staff data from the CCD nonfiscal datasets
+Script to organize 2015-2024 staff data from the CCD nonfiscal datasets
 and then to concat that with the prepped columns from whole dataframe (2014
-and earlier)
+and earlier). Then write the final dataframe to a sqlite database.
 '''
 #%%
 import sqlite3
@@ -82,30 +82,19 @@ for  year in range(2017, 2025):
         .reset_index()
     )
 
-#%%
-
 # Combine all years together
 staff = (
-    pd.concat(pre_staff, names=['end_year', 'fdsa'])
+    pd.concat(pre_staff, names=['end_year'])
     .reset_index(level='end_year')
-    .reset_index(drop=True)
 )
 
 # Clean up columns
 staff['ST'] = staff['ST'].combine_first(staff['STABR'])
 staff['TOTAL'] = staff['TOTAL'].combine_first(staff['STAFF'])
+staff['SEA_NAME'] = staff['SEA_NAME'].combine_first(staff['SEANAME'])
 
-staff = (
-    staff
-    .drop(columns=['STABR'])
-    .drop(columns=['SURVYEAR'])
-    .drop(columns=['SEANAME', 'SEA_NAME', 'STATE_AGENCY_NO'])
-    # .drop(columns=['IAPARCORSUP', 'IAFTEPUP', 'IAGUID', 'IALEAADM',
-    #                'IALIBSTF', 'IASCHADM', 'IASUPSTF'])
-    .drop(columns=['STAFF'])
-    .astype({'STATENAME': 'category',
-             'ST': 'category'})
-)
+staff = staff.drop(columns=['SURVYEAR', 'STABR', 'STAFF', 'SEANAME',
+                            'STATE_AGENCY_NO', 'MISSING'])
 
 # Fill in any missing values appropriately
 staff = staff.assign(
@@ -114,88 +103,38 @@ staff = staff.assign(
                               x['STUSUP'])
 )
 
-#%%
 # Concat with 2014 and earlier data
-float_cols = ['CORSUP', 'ELMGUI', 'ELMTCH', 'KGTCH', 'LEAADM', 'LEASUP',
-              'LIBSPE', 'LIBSUP', 'OTHSUP', 'PARA', 'PKTCH', 'SCHADM',
-              'SCHSUP', 'SECGUI', 'SECTCH', 'TOTGUI', 'TOTTCH', 'UGTCH',
-              'STUSUP']
-
 staff = pd.concat([staff,
                    pd.read_csv("data/nonfiscal/staff/staff_through_2014.csv",
-                               dtype={x: float for x in float_cols},
-                               na_values={x: ['M', 'N'] for x in float_cols}
-                               )
+                               na_values=['M', 'N', '.'])
                    ],
                   ignore_index=True)
 
-# Cleaning up dtypes for importing into sql database
-df_dtypes = {'FIPST': int, 'STATE_AGENCY_NO': 'Int64'}
-staff = staff.astype(df_dtypes)
-
-# Rename UNION and LEVEL variable/column because both are sql keywords
-staff = staff.rename(columns = {'UNION': 'UNION_CODE'})
+# Make columns names lowercase.
+staff = staff.rename(columns=str.lower)
 
 # %%
 ###############################################################################
 # Write the staff table to the database
 ###############################################################################
 
-# Need to check to make sure OUT_OF_STATE_FLAG, etc. correctly imported as
-# a boolean. SQLITE3 doesn't support booleans. Uses ints instead. Might need
-# convert boolean categories to integers and go to 0/1 instead of False/True.
-
-# Columns that are in the database directory table
-staff_columns = [col for col in staff.columns
-                 if col not in ['STATENAME', 'ST']]
-
-col_dtypes = {
-    'end_year': 'INTEGER',
-    'fipst': 'INTEGER',
-    'lea_name': 'TEXT',
-    'state_agency_no': 'INTEGER',
-    'union': 'TEXT',
-    'st_leaid': 'TEXT',
-    'leaid': 'INTEGER',
-    'corsup': 'REAL',
-    'elmgui': 'REAL',
-    'elmtch': 'REAL',
-    'gui': 'REAL',
-    'kgtch': 'REAL',
-    'leaadm': 'REAL',
-    'leasta': 'REAL',
-    'leasup': 'REAL',
-    'libspe': 'REAL',
-    'libsup': 'REAL',
-    'othsta': 'REAL',
-    'othsup': 'REAL',
-    'para': 'REAL',
-    'pktch': 'REAL',
-    'schadm': 'REAL',
-    'schpsych': 'REAL',
-    'schsta': 'REAL',
-    'schsup': 'REAL',
-    'secgui': 'REAL',
-    'sectch': 'REAL',
-    'stusupwopsych': 'REAL',
-    'total': 'REAL',
-    'totgui': 'REAL',
-    'tottch': 'REAL',
-    'ugtch': 'REAL',
-    'stusup': 'REAL'}
+# Make a mapping from python/pandas dtypes to SQLITE dtypes
+type_map = {'object': 'TEXT',
+            'int': 'INTEGER',
+            'Int64': 'INTEGER',
+            'float': 'REAL'}
+col_dtypes = dict(zip(staff.dtypes.index,
+                      staff.dtypes.map(type_map)))
 
 # Connect to database and append to created table.
-conn = sqlite3.connect('district.db')
+conn = sqlite3.connect('data/state.db')
 cursor = conn.cursor()
 
-(staff[staff_columns]
- .rename(dict(zip(staff.columns, staff.columns.str.lower())))
- .to_sql('staff',
-         con=conn,
-         if_exists='append',
-         index=False,
-         dtype=col_dtypes)
-)
+staff.to_sql('staff',
+              con=conn,
+              if_exists='append',
+              index=False,
+              dtype=col_dtypes)
 
 conn.close()
 
