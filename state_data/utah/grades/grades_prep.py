@@ -53,8 +53,8 @@ grades = (
     .rename(columns={'LEA': 'lea_name',
                      'School': 'school_name',
                      'School Type': 'school_type',
-                     'School Number': 'st_schoolid',
-                     'LEA Number': 'st_leaid'})
+                     'School Number': 'st_school_number',
+                     'LEA Number': 'st_lea_number'})
 )
 
 # Change school_type column for future convenience
@@ -85,17 +85,17 @@ labels = {
 for old, new in labels.items():
     grades.loc[grades['lea_name'] == old, 'lea_name'] = new
 
-# Need to fill in the missing values for st_leaid and st_schoolid for
+# Need to fill in the missing values for st_lea_number and st_number for
 # later merging grades with CCD data.
 
 lea_names_to_ids = (
     grades
-    .dropna(subset='st_leaid')
+    .dropna(subset='st_lea_number')
     .set_index(['lea_name', 'school_name'])
-    .loc[:, 'st_leaid']
+    .loc[:, 'st_lea_number']
     .to_dict()
 )
-grades['st_leaid'] = (
+grades['st_lea_number'] = (
     grades
     .apply(lambda row: lea_names_to_ids.get((row['lea_name'],
                                          row['school_name'])),
@@ -104,12 +104,12 @@ grades['st_leaid'] = (
 
 school_names_to_ids = (
     grades
-    .dropna(subset='st_schoolid')
+    .dropna(subset='st_school_number')
     .set_index(['lea_name', 'school_name'])
-    .loc[:, 'st_schoolid']
+    .loc[:, 'st_school_number']
     .to_dict()
 )
-grades['st_schoolid'] = (
+grades['st_school_number'] = (
     grades
     .apply(lambda row: school_names_to_ids.get((row['lea_name'],
                                          row['school_name'])),

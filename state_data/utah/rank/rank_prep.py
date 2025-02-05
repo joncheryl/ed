@@ -62,9 +62,9 @@ rank = (
     .rename(columns={'District': 'lea_name',
                      'SchoolName': 'school_name',
                      'SchoolType': 'school_type',
-                     'SchoolID': 'st_school_id',
+                     'SchoolID': 'st_schoolid',
                      'SchoolNumber': 'st_school_number',
-                     'DistrictID': 'st_lea_id'})
+                     'DistrictID': 'st_leaid'})
 )
 
 # Make percent ranking name consistent:
