@@ -2,7 +2,7 @@
 John Sherrill
 Feb 1, 2025
 
-Script to organize 1987-2024 datasets from the CCD nonfiscal datasets
+Script to organize 1987-2024 datasets from the CCD nonfiscal datasets.
 '''
 #%%
 
@@ -167,7 +167,7 @@ drop_cols = [
     'IHIEQUIV', 'IBLEQUIV', 'IWHEQUIV', 'IAMOHC', 'IASOHC', 'IHIOHC', 'IBLOHC',
     'IWHOHC']
 
-membership_cols = ['end_year', 'FIPST', 'RACECAT'] + \
+membership_cols = ['end_year', 'FIPST'] + \
     [x for x in whole.columns
      if x not in directory_cols
      and x not in staff_cols
