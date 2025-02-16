@@ -9,11 +9,10 @@ import sqlite3
 import os
 import pandas as pd
 
-#%%
-
 PRE_PATH = "ccd_db/state"
 PRE_PATH_DATA = PRE_PATH + "/data/fiscal/fiscal_"
 
+#%%
 ###############################################################################
 # Import fwf encoded data
 ###############################################################################
@@ -43,11 +42,11 @@ crosswalk_dict = dict(zip(fiscal_cross['old_var'],
 pre_fiscal[1987] = pre_fiscal[1987].rename(columns=crosswalk_dict)
 pre_fiscal[1988] = pre_fiscal[1988].rename(columns=crosswalk_dict)
 
+#%%
 ###############################################################################
 # Import csv encoded data
 ###############################################################################
 years_csv = [year for year in range(1987, 2023) if year not in years_fwf]
-
 files_csv = {year: f'{PRE_PATH_DATA}{year}.csv' for year in years_csv}
 
 # The csv file for end_year=2016 has a bunch of trailing tabs on the final
@@ -58,19 +57,18 @@ with open(FILE_PATH, 'r', encoding='utf-8') as infile, \
     open(TEMP_FILE, 'w', encoding='utf-8') as outfile:
     # Just looking to chop off extra tabs at the end of lines...
     outfile.writelines(line.rstrip() + '\n' for line in infile)
-    # Replace the original file with the temporary file
     os.replace(TEMP_FILE, FILE_PATH)
 
 pre_fiscal_csv = {year: pd.read_csv(file, sep='\t') for
                   year, file in files_csv.items()}
 pre_fiscal.update(pre_fiscal_csv)
 
-# For end_year=2002 through 2004, there were unfortunately lower-case
-# letters in the column names.
-# Convert all column names for these years to upper-case.
+# For end_year=2002 through 2004, there were unfortunately lower-case letters
+# in the column names. Convert all column names for these years to upper-case.
 for year in range(2002, 2005):
     pre_fiscal[year].columns = pre_fiscal[year].columns.str.upper()
 
+# Put data from all years together into one dataframe.
 fiscal = (
     pd.concat(pre_fiscal, names=['end_year'])
     .reset_index(level='end_year')
@@ -80,7 +78,7 @@ fiscal = (
 
 #%%
 ###############################################################################
-# Organizing column names
+# Organize column names and data types.
 ###############################################################################
 
 # Put together columns FIPS AND STFIPS, rename to FIPST and drop STFIPS.
@@ -89,10 +87,9 @@ fiscal.insert(1, 'FIPST', (
     .combine_first(fiscal['STFIPS'])
     .astype(int))
 )
-
 fiscal = fiscal.drop(columns=['FIPS', 'STFIPS'])
 
-# Put together columns STNAME and NAME. Drop NAM
+# Put together columns STNAME and NAME. Drop NAME.
 fiscal['STNAME'] = fiscal['STNAME'].combine_first(fiscal['NAME'])
 fiscal = fiscal.drop(columns=['NAME'])
 
@@ -130,7 +127,6 @@ float_cols = [
 not_cols = ['R__01', 'R__02', 'R__03', 'R__04', 'T__01', 'T__02', 'T__03',
             'T__07']
 float_cols = [x for x in float_cols if x not in not_cols]
-
 fiscal[float_cols] = (
     fiscal[float_cols]
     .apply(lambda col: pd.to_numeric(col, errors='coerce'))
@@ -147,10 +143,6 @@ fiscal[fiscal.select_dtypes('number').columns] = (
 
 #%%
 ###############################################################################
-# GOT TO HERE. Might just need to write to database?...
-###############################################################################
-
-###############################################################################
 # Write the fiscal table to the database
 ###############################################################################
 
@@ -165,7 +157,6 @@ col_dtypes = {
     **{col: 'INTEGER' for col in int64_cols.index}
 }
 
-#%%
 # Creates a new database file if it doesn't exist
 conn = sqlite3.connect(PRE_PATH + 'data/state.db')
 cursor = conn.cursor()
