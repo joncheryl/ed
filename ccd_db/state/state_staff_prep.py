@@ -120,11 +120,10 @@ staff = staff.rename(columns=str.lower)
 
 # Make a mapping from python/pandas dtypes to SQLITE dtypes
 type_map = {'object': 'TEXT',
-            'int': 'INTEGER',
+            'int64': 'INTEGER',
             'Int64': 'INTEGER',
-            'float': 'REAL'}
-col_dtypes = dict(zip(staff.dtypes.index,
-                      staff.dtypes.map(type_map)))
+            'float64': 'REAL'}
+col_dtypes = staff.dtypes.map(lambda x: type_map.get(str(x)))
 
 # Connect to database and append to created table.
 conn = sqlite3.connect('data/state.db')
@@ -134,7 +133,7 @@ staff.to_sql('staff',
               con=conn,
               if_exists='append',
               index=False,
-              dtype=col_dtypes)
+              dtype=col_dtypes.to_dict())
 
 conn.close()
 

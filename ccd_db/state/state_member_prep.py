@@ -81,7 +81,7 @@ membership_wide[num_cols] = (
 membership_wide = membership_wide.drop(
     columns=[col for col in membership_wide.columns if re.match(r'^I', col)]
 ).drop(
-    columns=['STABR', 'STATENAME', 'SEANAME', 'RACECAT.1']
+    columns=['STABR', 'STATENAME', 'SEANAME']
 )
 
 ###############################################################################
@@ -216,11 +216,10 @@ membership = membership.rename(columns=str.lower)
 
 # Make a mapping from python/pandas dtypes to SQLITE dtypes
 type_map = {'object': 'TEXT',
-            'int': 'INTEGER',
+            'int64': 'INTEGER',
             'Int64': 'INTEGER',
             'float': 'REAL'}
-col_dtypes = dict(zip(membership.dtypes.index,
-                      membership.dtypes.map(type_map)))
+col_dtypes = membership.dtypes.map(lambda x: type_map.get(str(x)))
 
 # Connect to database and append to created table.
 conn = sqlite3.connect('data/state.db')
@@ -230,7 +229,7 @@ membership.to_sql('membership',
               con=conn,
               if_exists='append',
               index=False,
-              dtype=col_dtypes)
+              dtype=col_dtypes.to_dict())
 
 conn.close()
 

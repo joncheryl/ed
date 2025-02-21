@@ -9,15 +9,15 @@ import sqlite3
 import os
 import pandas as pd
 
-PRE_PATH = "ccd_db/state"
-PRE_PATH_DATA = PRE_PATH + "/data/fiscal/fiscal_"
+PRE_PATH = ""
+PRE_PATH_DATA = PRE_PATH + "data/fiscal/fiscal_"
 
 #%%
 ###############################################################################
 # Import fwf encoded data
 ###############################################################################
 
-layout = pd.read_csv('ccd_db/state/data/fiscal/layouts/layouts.csv')
+layout = pd.read_csv(PRE_PATH + 'data/fiscal/layouts/layouts.csv')
 years_fwf = layout['end_year'].unique()
 
 files_fwf = {year: [f'{PRE_PATH_DATA}{year}.csv',
@@ -36,7 +36,7 @@ pre_fiscal = {year: pd.read_fwf(file,
 
 # There was a big change in 1989 so converting column names via a crosswalk
 # for end_year 1987 and 1988.
-fiscal_cross = pd.read_csv('ccd_db/state/fiscal_var_crosswalk.csv').dropna()
+fiscal_cross = pd.read_csv(PRE_PATH + 'fiscal_var_crosswalk.csv').dropna()
 crosswalk_dict = dict(zip(fiscal_cross['old_var'],
                           fiscal_cross['new_var']))
 pre_fiscal[1987] = pre_fiscal[1987].rename(columns=crosswalk_dict)
@@ -141,33 +141,45 @@ fiscal[fiscal.select_dtypes('number').columns] = (
     fiscal.select_dtypes('number').where(lambda x: x >= 0, pd.NA)
 )
 
+fiscal.columns = fiscal.columns.str.lower()
+# fiscal = fiscal.rename(dict(zip(fiscal.columns, fiscal.columns.str.lower())))
 #%%
 ###############################################################################
 # Write the fiscal table to the database
 ###############################################################################
 
 # Create the correct sqlite3 datatype mapping for columns
-object_cols = fiscal.dtypes.loc[fiscal.dtypes == 'object']
-int_cols = fiscal.dtypes.loc[fiscal.dtypes == int]
-int64_cols = fiscal.dtypes.loc[fiscal.dtypes == 'Int64']
+# object_cols = fiscal.dtypes.loc[fiscal.dtypes == 'object']
+# int_cols = fiscal.dtypes.loc[fiscal.dtypes == int]
+# int64_cols = fiscal.dtypes.loc[fiscal.dtypes == 'Int64']
 
-col_dtypes = {
-    **{col: 'TEXT' for col in object_cols.index},
-    **{col: 'INTEGER' for col in int_cols.index},
-    **{col: 'INTEGER' for col in int64_cols.index}
-}
+# col_dtypes = {
+#     **{col: 'TEXT' for col in object_cols.index},
+#     **{col: 'INTEGER' for col in int_cols.index},
+#     **{col: 'INTEGER' for col in int64_cols.index}
+# }
 
+type_map = {'object': 'TEXT',
+            'int64': 'INTEGER',
+            'Int64': 'INTEGER',
+            'float': 'REAL'}
+col_dtypes = fiscal.dtypes.map(lambda x: type_map.get(str(x)))
+
+# Definitely need a better way to get the sql dtypes to make schema.
+# col_dtypes.to_csv('test.txt', sep=' ', header=False, lineterminator=',\n')
+
+#%%
 # Creates a new database file if it doesn't exist
 conn = sqlite3.connect(PRE_PATH + 'data/state.db')
 cursor = conn.cursor()
 
 (fiscal
- .rename(dict(zip(fiscal.columns, fiscal.columns.str.lower())))
+#  .rename(dict(zip(fiscal.columns, fiscal.columns.str.lower())))
  .to_sql('fiscal',
          con=conn,
          if_exists='append',
          index=False,
-         dtype=col_dtypes)
+         dtype=col_dtypes.to_dict())
 )
 
 conn.close()

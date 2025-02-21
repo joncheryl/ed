@@ -61,10 +61,9 @@ directory = directory.rename(columns=str.lower)
 
 # Make a mapping from python/pandas dtypes to SQLITE dtypes
 type_map = {'object': 'TEXT',
-            'int': 'INTEGER',
+            'int64': 'INTEGER',
             'Int64': 'INTEGER'}
-col_dtypes = dict(zip(directory.dtypes.index,
-                      directory.dtypes.map(type_map)))
+col_dtypes = directory.dtypes.map(lambda x: type_map.get(str(x)))
 
 # Creates a new database file if it doesn't exist
 conn = sqlite3.connect('data/state.db')
@@ -74,7 +73,7 @@ directory.to_sql('directory',
                  con=conn,
                  if_exists='append',
                  index=False,
-                 dtype=col_dtypes)
+                 dtype=col_dtypes.to_dict())
 
 conn.close()
 
