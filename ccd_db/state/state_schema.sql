@@ -16,7 +16,7 @@ or TEXT.
 -- NAEP scores
 CREATE TABLE naep (
     end_year INTEGER,
-    accomadations TEXT,
+    accommodations TEXT,
     math_read TEXT,
     grade INTEGER,
     scale TEXT,
