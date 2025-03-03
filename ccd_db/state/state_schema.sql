@@ -13,6 +13,19 @@ is a dtype parameter that should be used with each column either INTEGER, REAL,
 or TEXT.
 */
 
+-- NAEP scores
+CREATE TABLE naep (
+    end_year INTEGER,
+    accomadations TEXT,
+    math_read TEXT,
+    grade INTEGER,
+    scale TEXT,
+    jurisdiction TEXT,
+    errorFlag INTEGER,
+    mean REAL,
+    sd REAL
+);
+
 -- SEA information
 CREATE TABLE directory (
     end_year INTEGER,
