@@ -26,12 +26,13 @@ files_fwf = {year: [f'{PRE_PATH_DATA}{year}.csv',
                     layout.loc[layout['end_year'] == year, 'variable']]
              for year in years_fwf}
 
-# The comment='.' below is for a bad line at the end of end_year=1987 file.
+# The na_values='.' below is for a bad line at the end of end_year=1987 file
+# and for some '.' that appear in at least end_year=1994, 1995.
 pre_fiscal = {year: pd.read_fwf(file,
                                     colspecs=start_end,
                                     encoding='cp1252',
                                     names=variables,
-                                    comment='.') for
+                                    na_values='.') for
                   year, (file, start_end, variables) in files_fwf.items()}
 
 # There was a big change in 1989 so converting column names via a crosswalk
@@ -74,6 +75,7 @@ fiscal = (
     .reset_index(level='end_year')
     .reset_index(drop=True)
     .drop(columns='SURVYEAR')
+    .dropna(how='all', subset=['FIPS', 'STFIPS'])
 )
 
 #%%

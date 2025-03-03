@@ -113,6 +113,11 @@ with open('data/naep/raw_naep.txt', 'w', encoding="utf-8") as file:
     json.dump(data_returned, file, indent=4)
 
 #%%
+# # If needed, read the data from file instead of downloading again.
+# with open('data/naep/raw_naep.txt', 'r') as file:
+#     data_returned = json.load(file)
+
+#%%
 # Flatten returned data for DataFrame and remove extreneous data.
 data_flattened = [
     dictionary

@@ -3,6 +3,13 @@ John Sherrill
 Feb 1, 2025
 
 Script to organize 1987-2024 datasets from the CCD nonfiscal datasets.
+
+---Error 1:
+The column 'MEMBER' has errors for end_year=2000. Looks like for some reason
+the full 8 characters alotted for the data is not used correctly and the final
+character in the number is not reported. This happens for states that have
+total membership greater than 1 million students.
+
 '''
 #%%
 
@@ -41,6 +48,15 @@ pre_whole_fwf = {year: pd.read_fwf(file,
 
 pre_whole.update(pre_whole_fwf)
 
+# Manually fix error 1 noted above.
+fucked_up_states = [6,48,36,12,17,39,42,26,13,34,37,51,53]
+pre_whole[2000].loc[pre_whole[2000]['STFIPS'].isin(fucked_up_states),
+                    'MEMBER'] = (
+    pre_whole[2000].loc[
+        pre_whole[2000]['STFIPS'].isin(fucked_up_states),
+                        'MEMBER'] + '0'
+    )
+                    
 #%%
 ###############################################################################
 # Make names consistent across years.
