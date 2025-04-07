@@ -4,11 +4,16 @@ Feb 1, 2025
 
 Script to organize 1987-2024 datasets from the CCD nonfiscal datasets.
 
----Error 1:
+---Error #1:
 The column 'MEMBER' has errors for end_year=2000. Looks like for some reason
 the full 8 characters alotted for the data is not used correctly and the final
 character in the number is not reported. This happens for states that have
 total membership greater than 1 million students.
+
+---Error #2:
+The column 'STNAME' has an error for end_year=2005. The width of the column
+was not great enough to fully represent "BUREAU OF INDIAN EDUCATION". Was
+truncated to "BUREAU OF INDIAN EDUCATIO".
 
 '''
 #%%
@@ -48,7 +53,7 @@ pre_whole_fwf = {year: pd.read_fwf(file,
 
 pre_whole.update(pre_whole_fwf)
 
-# Manually fix error 1 noted above.
+# Manually fix error #1 noted at intro above.
 fucked_up_states = [6,48,36,12,17,39,42,26,13,34,37,51,53]
 pre_whole[2000].loc[pre_whole[2000]['STFIPS'].isin(fucked_up_states),
                     'MEMBER'] = (
@@ -56,7 +61,11 @@ pre_whole[2000].loc[pre_whole[2000]['STFIPS'].isin(fucked_up_states),
         pre_whole[2000]['STFIPS'].isin(fucked_up_states),
                         'MEMBER'] + '0'
     )
-                    
+
+# Manually fix error #2 noted at intro above.
+pre_whole[2005].loc[pre_whole[2005]['STNAME'] == 'BUREAU OF INDIAN EDUCATIO',
+                    'STNAME'] = 'BUREAU OF INDIAN EDUCATION'
+
 #%%
 ###############################################################################
 # Make names consistent across years.

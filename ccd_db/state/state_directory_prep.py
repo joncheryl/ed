@@ -43,6 +43,27 @@ directory = directory.drop(columns=['STABR', 'SCHOOL_YEAR',
                                     'SURVYEAR', 'SEANAME',
                                     'STNAME'])
 
+# Years 1990, 1994, 1995, 1996 had lower case statename.
+directory['STATENAME'] = directory['STATENAME'].str.upper()
+
+# Year 2000 had underscores in statename. Eg. 'NORTH_CAROLINA
+directory['STATENAME'] = directory['STATENAME'].str.replace('_', ' ')
+
+# Years 2012, 2013, 2014 had stabr instead of statename in statename column.
+stabr_statename_mapping = (
+    directory.loc[directory['ST'] != directory['STATENAME'],
+                  ['ST', 'STATENAME']]
+    .drop_duplicates()
+    .set_index('ST')['STATENAME']
+    .to_dict()
+)
+
+directory['STATENAME'] = (
+    directory['STATENAME']
+    .map(stabr_statename_mapping)
+    .combine_first(directory['STATENAME'])
+    )
+
 # STATE_AGENCY_NO doesn't seem to have any information so drop it.
 directory = directory.drop(columns=['STATE_AGENCY_NO'])
 
@@ -71,7 +92,7 @@ cursor = conn.cursor()
 
 directory.to_sql('directory',
                  con=conn,
-                 if_exists='append',
+                 if_exists='replace',
                  index=False,
                  dtype=col_dtypes.to_dict())
 
